@@ -11,7 +11,8 @@ import java.util.Map;
 
 public class Servidor {
     public static void main(String[] args) throws IOException {
-        Map<String, List<Registro>> tablaDNS = new HashMap<>();
+        Map<String, List<Registro>> registros = new HashMap<>();
+
 
 
         final int puerto = 5000;
@@ -25,6 +26,7 @@ public class Servidor {
 
             BufferedReader entrada = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
             PrintWriter salida = new PrintWriter(cliente.getOutputStream(), true);
+
         }
     }
 }

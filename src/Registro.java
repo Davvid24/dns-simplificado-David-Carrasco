@@ -7,11 +7,12 @@ public class Registro {
         this.valor = valor;
     }
 
-    public String getTipo() { return tipo; }
-    public String getValor() { return valor; }
-
-    @Override
-    public String toString() {
-        return tipo + " " + valor;
+    public String getTipo() {
+        return tipo;
     }
+
+    public String getValor() {
+        return valor;
+    }
+
 }
