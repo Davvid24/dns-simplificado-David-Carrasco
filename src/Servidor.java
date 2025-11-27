@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -12,6 +9,15 @@ import java.util.Map;
 public class Servidor {
     public static void main(String[] args) throws IOException {
         Map<String, List<Registro>> registros = new HashMap<>();
+
+
+        File file = new File("registros.txt");
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] lineas = line.split(",");
+            registros.put(lineas[0], new ArrayList<>());
+        }
 
 
 
