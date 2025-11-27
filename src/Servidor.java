@@ -3,11 +3,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Main {
+public class Servidor {
     public static void main(String[] args) {
-        Map<String, List<String>> listaDNS = new HashMap<>();
+        Map<String,List<String>> listaDNS = new HashMap<>();
         List<String> listaDNS1 = new ArrayList<>();
-               
+
 
     }
 }
