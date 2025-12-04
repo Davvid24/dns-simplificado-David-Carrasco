@@ -51,7 +51,21 @@ public class Servidor {
                             cliente.close();
                             break;
                         }
+                        if (peticion.equalsIgnoreCase("List")) {
+                            salida.println("150 Inicio  Listado: ");
+
+                            registros.forEach((clave, lista) -> {
+                                salida.println("Nombre: " + clave);
+                                lista.forEach(reg -> salida.println("  " + reg));
+                                salida.println("---------------------------------------" +
+                                        "0");
+                            });
+                            salida.println("226 Fin Listado: ");
+
+                        continue;
+                        }
 //si concuerda con la regex
+
 
                         if (peticion.matches(regex)) {
                             String[] partes2 = peticion.split("\\s+");

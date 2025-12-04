@@ -17,9 +17,6 @@ public class Registro {
 
     @Override
     public String toString() {
-        return "Registro{" +
-                "tipo='" + tipo + '\'' +
-                ", valor='" + ip + '\'' +
-                '}';
+        return "Tipo: " + tipo + ", IP: " + ip;
     }
 }
