@@ -57,8 +57,7 @@ public class Servidor {
                             registros.forEach((clave, lista) -> {
                                 salida.println("Nombre: " + clave);
                                 lista.forEach(reg -> salida.println("  " + reg));
-                                salida.println("---------------------------------------" +
-                                        "0");
+                                salida.println("---------------------------------------");
                             });
                             salida.println("226 Fin Listado: ");
 
@@ -67,16 +66,26 @@ public class Servidor {
 //si concuerda con la regex
 
 
+                        peticion = peticion.trim();
                         if (peticion.matches(regex)) {
                             String[] partes2 = peticion.split("\\s+");
                             String tipo = partes2[1];
                             String dominio = partes2[2];
 
                             List<Registro> solicitud = registros.get(dominio);
-                            //si hay algun registro con la clave solicitada
-                            if (solicitud != null && solicitud.getFirst().getTipo().matches(tipo)) {
-                                salida.println("200 " + solicitud.getFirst().getIp());
-                            } else {//si la solicitud es correcta pero la clave no existe
+
+                            boolean encontrado = false;
+
+                            //si hay registros imprime todo lo que coincida
+                            if (solicitud != null) {
+                                for (Registro r : solicitud) {
+                                    if (r.getTipo().equalsIgnoreCase(tipo)) {
+                                        salida.println("200 " + r.getIp());
+                                        encontrado = true;
+                                    }
+                                }
+                            }
+                            if (!encontrado) {
                                 salida.println("404 Not Found");
                             }
                         } else {// si la solicitud no concuerda con la regex
