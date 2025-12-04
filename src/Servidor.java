@@ -43,7 +43,9 @@ public class Servidor {
                     try {
 
 
-                        String regex = "^LOOKUP\\s+(A|CNAME|MX)\\s+([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})$";
+                        String regexBuscar = "^LOOKUP\\s+(A|CNAME|MX)\\s+([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})$";
+                        String regexAnadir = "^REGISTER\\s+([a-zA-Z0-9.-]+)\\s+(A|CNAME|MX)\\s+([^\\s]+)$";
+
                         salida.println("Por favor, realiza una solicitud con este formato: (  LOOKUP <tipo> <dominio>  )");
                         String peticion = entrada.readLine();
                         if (peticion.equalsIgnoreCase("exit")) {
@@ -67,7 +69,7 @@ public class Servidor {
 
 
                         peticion = peticion.trim();
-                        if (peticion.matches(regex)) {
+                        if (peticion.matches(regexBuscar)) {
                             String[] partes2 = peticion.split("\\s+");
                             String tipo = partes2[1];
                             String dominio = partes2[2];
@@ -78,6 +80,7 @@ public class Servidor {
 
                             //si hay registros imprime todo lo que coincida
                             if (solicitud != null) {
+
                                 for (Registro r : solicitud) {
                                     if (r.getTipo().equalsIgnoreCase(tipo)) {
                                         salida.println("200 " + r.getIp());
@@ -88,7 +91,25 @@ public class Servidor {
                             if (!encontrado) {
                                 salida.println("404 Not Found");
                             }
-                        } else {// si la solicitud no concuerda con la regex
+                        } else if (peticion.matches(regexAnadir)) {
+                            String[] partesPeticion = peticion.split(" ", 2);
+                            String registroAAnadir = partesPeticion[1];
+                            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+
+                                writer.write(partesPeticion[1]);
+                                salida.println("200 Record Added");
+                            }
+                            String[] campos = registroAAnadir.split("\\s+");
+                            if (campos.length == 3) {
+                                String dominio = campos[0];
+                                String tipo = campos[1];
+                                String ip = campos[2];
+
+                                Registro reg = new Registro(tipo, ip);
+                                registros.computeIfAbsent(dominio, k -> new ArrayList<>()).add(reg);
+                            }
+
+                            } else {// si la solicitud no concuerda con la regex
                             salida.println("400 Bad Request.");
                         }
 
