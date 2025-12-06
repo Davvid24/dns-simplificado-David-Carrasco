@@ -20,105 +20,32 @@ public class Servidor {
             String tipo = partes[1];
             String ip = partes[2];
             Registro reg = new Registro(tipo, ip);
-
             registros.computeIfAbsent(dominio, k -> new ArrayList<>()).add(reg);
-
+            // Por lo que he visto computeIfAbsent si la clave esta repetida unicamente añade el valor
         }
-        // SOLICITUD AL MAPEO CON CLAVE
-       /* List<Registro> solicitud = registros.get("google.com");
-        System.out.println(solicitud.getFirst().getValor());*/
+
 
         final int puerto = 5000;
         final String host = "localhost";
         try (ServerSocket servidor = new ServerSocket(puerto)) {
             System.out.println("Servidor DNS iniciado. Esperando conexión en el puerto " + puerto + "...");
-
-            while (true) {//vuelta a empezar al cerrar el cliente
+            int maxClientes = 5;
+            int clientesAceptados = 0;
+            while (clientesAceptados < maxClientes) {
                 Socket cliente = servidor.accept();
-                System.out.println("Cliente conectado desde: " + cliente.getInetAddress().getHostAddress());
+                System.out.println("Cliente conectado: " + cliente.getInetAddress());
 
-                BufferedReader entrada = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
-                PrintWriter salida = new PrintWriter(cliente.getOutputStream(), true);
-                while (true) {
-                    try {
+                hiloCliente clienteRunnable = new hiloCliente(cliente, registros, file);
+                Thread hilo = new Thread(clienteRunnable);
+                hilo.start();
 
-
-                        String regexBuscar = "^LOOKUP\\s+(A|CNAME|MX)\\s+([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})$";
-                        String regexAnadir = "^REGISTER\\s+([a-zA-Z0-9.-]+)\\s+(A|CNAME|MX)\\s+([^\\s]+)$";
-
-                        salida.println("Por favor, realiza una solicitud con este formato: (  LOOKUP <tipo> <dominio>  )");
-                        String peticion = entrada.readLine();
-                        if (peticion.equalsIgnoreCase("exit")) {
-                            salida.println("Cerrando conexión...");
-                            cliente.close();
-                            break;
-                        }
-                        if (peticion.equalsIgnoreCase("List")) {
-                            salida.println("150 Inicio  Listado: ");
-
-                            registros.forEach((clave, lista) -> {
-                                salida.println("Nombre: " + clave);
-                                lista.forEach(reg -> salida.println("  " + reg));
-                                salida.println("---------------------------------------");
-                            });
-                            salida.println("226 Fin Listado: ");
-
-                        continue;
-                        }
-//si concuerda con la regex
-
-
-                        peticion = peticion.trim();
-                        if (peticion.matches(regexBuscar)) {
-                            String[] partes2 = peticion.split("\\s+");
-                            String tipo = partes2[1];
-                            String dominio = partes2[2];
-
-                            List<Registro> solicitud = registros.get(dominio);
-
-                            boolean encontrado = false;
-
-                            //si hay registros imprime todo lo que coincida
-                            if (solicitud != null) {
-
-                                for (Registro r : solicitud) {
-                                    if (r.getTipo().equalsIgnoreCase(tipo)) {
-                                        salida.println("200 " + r.getIp());
-                                        encontrado = true;
-                                    }
-                                }
-                            }
-                            if (!encontrado) {
-                                salida.println("404 Not Found");
-                            }
-                        } else if (peticion.matches(regexAnadir)) {
-                            String[] partesPeticion = peticion.split(" ", 2);
-                            String registroAAnadir = partesPeticion[1];
-                            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-
-                                writer.write(partesPeticion[1]);
-                                salida.println("200 Record Added");
-                            }
-                            String[] campos = registroAAnadir.split("\\s+");
-                            if (campos.length == 3) {
-                                String dominio = campos[0];
-                                String tipo = campos[1];
-                                String ip = campos[2];
-
-                                Registro reg = new Registro(tipo, ip);
-                                registros.computeIfAbsent(dominio, k -> new ArrayList<>()).add(reg);
-                            }
-
-                            } else {// si la solicitud no concuerda con la regex
-                            salida.println("400 Bad Request.");
-                        }
-
-                    } catch (Exception e) {
-                        salida.println("500 Server Error");
-                    }
-                }
-
+                clientesAceptados++;
             }
+
+            System.out.println("Se ha alcanzado el máximo de clientes.");
+
+        } catch (IOException e) {
+            System.out.println("Error en el servidor: " + e.getMessage());
+        }
         }
     }
-}
