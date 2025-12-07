@@ -3,16 +3,19 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class hiloCliente implements Runnable {
     private Socket cliente;
     private Map<String, List<Registro>> registros;
     private File fichero;
+    private AtomicInteger conexiones;
 
-    public hiloCliente(Socket cliente, Map<String, List<Registro>> registros, File fichero) {
+    public hiloCliente(Socket cliente, Map<String, List<Registro>> registros, File fichero, AtomicInteger conexiones) {
         this.cliente = cliente;
         this.registros = registros;
         this.fichero = fichero;
+        this.conexiones = conexiones;
     }
 
     @Override
@@ -109,9 +112,11 @@ public class hiloCliente implements Runnable {
         }finally {
             try {
                 cliente.close();
+                conexiones.decrementAndGet();
             } catch (IOException i) {
                 i.printStackTrace();
             }
+
         }
     }
 

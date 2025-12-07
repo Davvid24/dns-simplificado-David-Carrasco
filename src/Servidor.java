@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Servidor {
     public static void main(String[] args) throws IOException {
         Map<String, List<Registro>> registros = new HashMap<>();
 
+        AtomicInteger conexiones  = new AtomicInteger(0);
+        final int maxClientes = 5;
 
         File file = new File("direcciones.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
@@ -29,20 +32,26 @@ public class Servidor {
         final String host = "localhost";
         try (ServerSocket servidor = new ServerSocket(puerto)) {
             System.out.println("Servidor DNS iniciado. Esperando conexión en el puerto " + puerto + "...");
-            int maxClientes = 5;
-            int clientesAceptados = 0;
-            while (clientesAceptados < maxClientes) {
+            while (true) {
                 Socket cliente = servidor.accept();
+                if (conexiones.get() >= maxClientes) {
+                    System.out.println("Se ha alcanzado el máximo de clientes.");
+
+                    cliente.close();
+                    continue; //es necesario para volve al inicio del while y comprobar la siguiente conexion
+
+                }
                 System.out.println("Cliente conectado: " + cliente.getInetAddress());
 
-                hiloCliente clienteRunnable = new hiloCliente(cliente, registros, file);
+                conexiones.incrementAndGet();
+
+                hiloCliente clienteRunnable = new hiloCliente(cliente, registros, file, conexiones);
                 Thread hilo = new Thread(clienteRunnable);
                 hilo.start();
 
-                clientesAceptados++;
-            }
 
-            System.out.println("Se ha alcanzado el máximo de clientes.");
+
+            }
 
         } catch (IOException e) {
             System.out.println("Error en el servidor: " + e.getMessage());
